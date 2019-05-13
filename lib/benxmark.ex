@@ -69,15 +69,14 @@ defmodule Benxmark do
   def run(base_url, file, _concurrent)
      when is_binary(file) do
     queryable = parse_properties_file(file)
-    uri = URI.parse(base_url)
 
     start_time = System.monotonic_time(:millisecond)
 
     queryable
     |> Enum.map(fn q ->
-      Task.async(__MODULE__, :timed_fetch, [uri, q])
+      Task.async(__MODULE__, :timed_fetch, [base_url, q])
     end)
-    |> Task.yield_many()
+    |> Task.yield_many(10_000)
 
     end_time = System.monotonic_time(:millisecond)
     duration = abs(end_time - start_time)
@@ -107,12 +106,9 @@ defmodule Benxmark do
   def timed_fetch(uri, queryable, started \\ nil)
 
   def timed_fetch(uri, queryable, nil) do
-    query = URI.encode_query(queryable)
-    url = URI.to_string(%{uri | query: query, path: "/hotel_rooms"})
-
     started = System.monotonic_time(:millisecond)
 
-    {:ok, %{body: body}} = Client.get(url)
+    %{body: body, status: status} = Client.get(uri, "/hotel_rooms", queryable)
     resp = Jason.decode!(body)
 
     case resp do
@@ -128,10 +124,9 @@ defmodule Benxmark do
   end
 
   def timed_fetch(uri, queryable, started) when is_integer(started) do
-    query = URI.encode_query(queryable)
-    url = URI.to_string(%{uri | query: query, path: "/hotel_rooms"})
+    started = System.monotonic_time(:millisecond)
 
-    {:ok, %{body: body}} = Client.get(url)
+    %{body: body} = Client.get(uri, "/hotel_rooms", queryable)
     resp = Jason.decode!(body)
 
     case resp do
