@@ -77,7 +77,7 @@ defmodule Benxmark do
     |> Enum.map(fn q ->
       Task.async(__MODULE__, :timed_fetch, [uri, q])
     end)
-    |> Task.yield_many()
+    |> Task.yield_many(50_000)
 
     end_time = System.monotonic_time(:millisecond)
     duration = abs(end_time - start_time)

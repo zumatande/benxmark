@@ -21,6 +21,12 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+config :hackney,
+  max_connections: 10_000,
+  connect_timeout: 25_000,
+  checkout_timeout: 15_000,
+  recv_timeout: 300_000
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
